@@ -1,0 +1,228 @@
+import java.awt.EventQueue;
+
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.border.EmptyBorder;
+import java.awt.Color;
+import java.awt.Window.Type;
+import javax.swing.JLabel;
+import javax.swing.JButton;
+import javax.swing.SwingConstants;
+import java.awt.Font;
+import javax.swing.JTextField;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
+import javax.swing.JOptionPane;
+import javax.swing.JTextArea;
+
+public class Cutoff extends JFrame {
+
+	private static final long serialVersionUID = 1L;
+	private JPanel contentPane;
+	private JTextField name;
+	private JTextField chemtext;
+	private JTextField phytext;
+	private JTextField mathtext;
+	JLabel output;
+	JLabel output2;
+	JTextArea history;
+	private JLabel historyLabel;
+	private JTextField idtext;
+
+	/**
+	 * Launch the application.
+	 */
+	
+	public static void main(String[] args) {
+		EventQueue.invokeLater(new Runnable() {
+			public void run() {
+				try {
+					Cutoff frame = new Cutoff();
+					frame.setVisible(true);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+	}
+
+	/**
+	 * Create the frame.
+	 */
+	public Cutoff() {
+		setType(Type.POPUP);
+		setTitle("Engineering Cutoff Calculation");
+		setBackground(new Color(0, 0, 0));
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setBounds(100, 100, 837, 550);
+		contentPane = new JPanel();
+		contentPane.setBackground(new Color(173, 255, 47));
+		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
+
+		setContentPane(contentPane);
+		contentPane.setLayout(null);
+		
+		
+		JLabel chemlab = new JLabel("Chemistry");
+		chemlab.setForeground(new Color(139, 0, 0));
+		chemlab.setHorizontalAlignment(SwingConstants.CENTER);
+		chemlab.setFont(new Font("SansSerif", Font.BOLD, 22));
+		chemlab.setBounds(57, 90, 171, 46);
+		contentPane.add(chemlab);
+		
+		JLabel phylab = new JLabel("Physics");
+		phylab.setForeground(new Color(139, 0, 0));
+		phylab.setHorizontalAlignment(SwingConstants.CENTER);
+		phylab.setFont(new Font("SansSerif", Font.BOLD, 22));
+		phylab.setBounds(57, 161, 171, 46);
+		contentPane.add(phylab);
+		
+		JLabel mathlab = new JLabel("Mathematics");
+		mathlab.setForeground(new Color(139, 0, 0));
+		mathlab.setBackground(new Color(139, 0, 0));
+		mathlab.setFont(new Font("SansSerif", Font.BOLD, 22));
+		mathlab.setHorizontalAlignment(SwingConstants.CENTER);
+		mathlab.setBounds(68, 217, 171, 46);
+		contentPane.add(mathlab);
+		
+		JButton calculate = new JButton("Calculate");
+		calculate.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				try {
+					String id=idtext.getText();
+					float c = Float.parseFloat(chemtext.getText());
+					float p = Float.parseFloat(phytext.getText());
+					float m = Float.parseFloat(mathtext.getText());
+					float calc = (c / 2) + (p / 2) + m;
+
+					output.setText("Your cutoff is " + String.format("%.2f", calc) + " out of 200");
+					output2.setText("Congratulations :)");
+	                 history.append("  "+id+"\t"+"Cutoff: " + String.format("%.2f", calc) + "\n");
+	                 
+					
+
+				} catch (NumberFormatException ex) {
+					JOptionPane.showMessageDialog(null, "Please enter valid numeric values!", "Invalid Input", JOptionPane.ERROR_MESSAGE);
+					if (!chemtext.getText().matches("\\d+")) chemtext.setBackground(Color.PINK);
+					if (!phytext.getText().matches("\\d+")) phytext.setBackground(Color.PINK);
+					if (!mathtext.getText().matches("\\d+")) mathtext.setBackground(Color.PINK);
+				}
+				
+
+			}
+			
+		});
+		calculate.setFont(new Font("SansSerif", Font.BOLD, 18));
+		calculate.setForeground(new Color(0, 0, 0));
+		calculate.setBackground(new Color(153, 0, 0));
+		calculate.setBounds(130, 307, 133, 46);
+		contentPane.add(calculate);
+		
+		JButton clear = new JButton("Clear");
+		clear.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				int response = JOptionPane.showConfirmDialog(null, "Are you sure you want to clear all fields?", "Confirm", JOptionPane.YES_NO_OPTION);
+				if (response == JOptionPane.YES_OPTION) {
+					idtext.setText("");
+					chemtext.setText("");
+					phytext.setText("");
+					mathtext.setText("");
+					output.setText("");
+					output2.setText("All the best !");
+				}
+				
+				
+			}
+		});
+		clear.setFont(new Font("SansSerif", Font.BOLD, 18));
+		clear.setForeground(new Color(0, 0, 0));
+		clear.setBackground(new Color(153, 0, 0));
+		clear.setBounds(317, 307, 133, 46);
+		contentPane.add(clear);
+		
+		chemtext = new JTextField();
+		chemtext.setHorizontalAlignment(SwingConstants.CENTER);
+		chemtext.setToolTipText("Enter marks out of 100");
+		chemtext.setFont(new Font("SansSerif", Font.BOLD, 18));
+		chemtext.setBounds(279, 95, 171, 42);
+		contentPane.add(chemtext);
+		chemtext.setColumns(10);
+		
+		phytext = new JTextField();
+		phytext.setHorizontalAlignment(SwingConstants.CENTER);
+		phytext.setToolTipText("Enter marks out of 100");
+		phytext.setFont(new Font("SansSerif", Font.BOLD, 18));
+		phytext.setBounds(279, 158, 171, 42);
+		contentPane.add(phytext);
+		phytext.setColumns(10);
+		
+		mathtext = new JTextField();
+		mathtext.setHorizontalAlignment(SwingConstants.CENTER);
+		mathtext.setToolTipText("Enter marks out of 100");
+		mathtext.setFont(new Font("SansSerif", Font.BOLD, 18));
+		mathtext.setBounds(279, 222, 171, 42);
+		contentPane.add(mathtext);
+		mathtext.setColumns(10);
+		
+		
+		
+		output = new JLabel("");
+		output.setHorizontalAlignment(SwingConstants.CENTER);
+		output.setFont(new Font("SansSerif", Font.BOLD, 18));
+		output.setBounds(212, 421, 451, 32);
+		contentPane.add(output);
+		
+		output2 = new JLabel("All the best !");
+		output2.setFont(new Font("SansSerif", Font.BOLD, 18));
+		output2.setHorizontalAlignment(SwingConstants.CENTER);
+		output2.setBounds(259, 463, 343, 36);
+		contentPane.add(output2);
+		// History Label and JTextArea
+		historyLabel = new JLabel("History");
+		historyLabel.setHorizontalAlignment(SwingConstants.CENTER);
+		historyLabel.setForeground(new Color(139, 0, 0));
+		historyLabel.setFont(new Font("SansSerif", Font.BOLD, 22));
+		historyLabel.setBounds(565, 32, 150, 30);
+		contentPane.add(historyLabel);
+		
+		
+
+		history = new JTextArea();
+		history.setFont(new Font("SansSerif", Font.BOLD, 15));
+		history.setBounds(519, 67, 269, 274);
+		contentPane.add(history);
+		
+		JButton clear2 = new JButton("clear history");
+		clear2.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				int response = JOptionPane.showConfirmDialog(null, "Are you sure you want to clear all the history", "Confirm", JOptionPane.YES_NO_OPTION);
+				if (response == JOptionPane.YES_OPTION) {
+				 history.setText(""); 
+			}
+		}
+		});
+		clear2.setFont(new Font("SansSerif", Font.BOLD, 15));
+		clear2.setBounds(590, 348, 133, 32);
+		contentPane.add(clear2);
+		
+		JLabel idlabel = new JLabel("ID");
+		idlabel.setForeground(new Color(139, 0, 0));
+		idlabel.setHorizontalAlignment(SwingConstants.CENTER);
+		idlabel.setFont(new Font("SansSerif", Font.BOLD, 22));
+		idlabel.setBounds(85, 36, 143, 32);
+		contentPane.add(idlabel);
+		
+		idtext = new JTextField();
+		idtext.setHorizontalAlignment(SwingConstants.CENTER);
+		idtext.setFont(new Font("SansSerif", Font.BOLD, 18));
+		idtext.setToolTipText("enter roll your roll number");
+		idtext.setBounds(279, 32, 171, 37);
+		contentPane.add(idtext);
+		idtext.setColumns(10);
+
+		// Append results to the history
+		
+		
+
+	}
+}
