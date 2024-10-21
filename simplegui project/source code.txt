@@ -1,5 +1,10 @@
 import java.awt.EventQueue;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 
+import javax.swing.JScrollPane;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
@@ -11,15 +16,38 @@ import javax.swing.SwingConstants;
 import java.awt.Font;
 import javax.swing.JTextField;
 import java.awt.event.ActionListener;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.awt.event.ActionEvent;
 import javax.swing.JOptionPane;
 import javax.swing.JTextArea;
+import javax.swing.JTextPane;
 
 public class Cutoff extends JFrame {
+	 // JDBC URL, username and password of MySQL server
+    private static final String DB_URL = "jdbc:mysql://localhost:3309/cutoff_db";
+    private static final String DB_USER = "root"; // default user
+    private static final String DB_PASSWORD = "enter your password here"; // WAMP default password is usually empty
+
+    // Method to establish connection to MySQL database
+    private Connection connectToDatabase() {
+        try {
+            Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+            System.out.println("Connected to the database!");
+            return connection;
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(null, "Database connection failed!", "Error", JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
+            return null;
+        }
+    }
+
 
 	private static final long serialVersionUID = 1L;
 	private JPanel contentPane;
-	private JTextField name;
 	private JTextField chemtext;
 	private JTextField phytext;
 	private JTextField mathtext;
@@ -28,6 +56,8 @@ public class Cutoff extends JFrame {
 	JTextArea history;
 	private JLabel historyLabel;
 	private JTextField idtext;
+	final String PASSWORD = "co123@";
+	JScrollPane scrollPane;
 
 	/**
 	 * Launch the application.
@@ -50,11 +80,16 @@ public class Cutoff extends JFrame {
 	 * Create the frame.
 	 */
 	public Cutoff() {
+		
+		    // Your existing code
+
+		    // Load history from file
+		
 		setType(Type.POPUP);
-		setTitle("Engineering Cutoff Calculation");
+		setTitle("CUTOFF CALC");
 		setBackground(new Color(0, 0, 0));
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 837, 550);
+		setBounds(100, 100, 815, 608);
 		contentPane = new JPanel();
 		contentPane.setBackground(new Color(173, 255, 47));
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
@@ -67,14 +102,14 @@ public class Cutoff extends JFrame {
 		chemlab.setForeground(new Color(139, 0, 0));
 		chemlab.setHorizontalAlignment(SwingConstants.CENTER);
 		chemlab.setFont(new Font("SansSerif", Font.BOLD, 22));
-		chemlab.setBounds(57, 90, 171, 46);
+		chemlab.setBounds(57, 157, 171, 46);
 		contentPane.add(chemlab);
 		
 		JLabel phylab = new JLabel("Physics");
 		phylab.setForeground(new Color(139, 0, 0));
 		phylab.setHorizontalAlignment(SwingConstants.CENTER);
 		phylab.setFont(new Font("SansSerif", Font.BOLD, 22));
-		phylab.setBounds(57, 161, 171, 46);
+		phylab.setBounds(57, 205, 171, 46);
 		contentPane.add(phylab);
 		
 		JLabel mathlab = new JLabel("Mathematics");
@@ -82,7 +117,7 @@ public class Cutoff extends JFrame {
 		mathlab.setBackground(new Color(139, 0, 0));
 		mathlab.setFont(new Font("SansSerif", Font.BOLD, 22));
 		mathlab.setHorizontalAlignment(SwingConstants.CENTER);
-		mathlab.setBounds(68, 217, 171, 46);
+		mathlab.setBounds(68, 261, 171, 46);
 		contentPane.add(mathlab);
 		
 		JButton calculate = new JButton("Calculate");
@@ -94,10 +129,11 @@ public class Cutoff extends JFrame {
 					float p = Float.parseFloat(phytext.getText());
 					float m = Float.parseFloat(mathtext.getText());
 					float calc = (c / 2) + (p / 2) + m;
-
+					insertCutoffData(id, c, p, m, calc);
 					output.setText("Your cutoff is " + String.format("%.2f", calc) + " out of 200");
 					output2.setText("Congratulations :)");
 	                 history.append("  "+id+"\t"+"Cutoff: " + String.format("%.2f", calc) + "\n");
+	                 saveHistoryToFile();
 	                 
 					
 
@@ -112,10 +148,11 @@ public class Cutoff extends JFrame {
 			}
 			
 		});
+	
 		calculate.setFont(new Font("SansSerif", Font.BOLD, 18));
 		calculate.setForeground(new Color(0, 0, 0));
 		calculate.setBackground(new Color(153, 0, 0));
-		calculate.setBounds(130, 307, 133, 46);
+		calculate.setBounds(129, 356, 133, 46);
 		contentPane.add(calculate);
 		
 		JButton clear = new JButton("Clear");
@@ -137,14 +174,14 @@ public class Cutoff extends JFrame {
 		clear.setFont(new Font("SansSerif", Font.BOLD, 18));
 		clear.setForeground(new Color(0, 0, 0));
 		clear.setBackground(new Color(153, 0, 0));
-		clear.setBounds(317, 307, 133, 46);
+		clear.setBounds(317, 356, 133, 46);
 		contentPane.add(clear);
 		
 		chemtext = new JTextField();
 		chemtext.setHorizontalAlignment(SwingConstants.CENTER);
 		chemtext.setToolTipText("Enter marks out of 100");
 		chemtext.setFont(new Font("SansSerif", Font.BOLD, 18));
-		chemtext.setBounds(279, 95, 171, 42);
+		chemtext.setBounds(279, 161, 171, 42);
 		contentPane.add(chemtext);
 		chemtext.setColumns(10);
 		
@@ -152,7 +189,7 @@ public class Cutoff extends JFrame {
 		phytext.setHorizontalAlignment(SwingConstants.CENTER);
 		phytext.setToolTipText("Enter marks out of 100");
 		phytext.setFont(new Font("SansSerif", Font.BOLD, 18));
-		phytext.setBounds(279, 158, 171, 42);
+		phytext.setBounds(279, 213, 171, 42);
 		contentPane.add(phytext);
 		phytext.setColumns(10);
 		
@@ -160,7 +197,7 @@ public class Cutoff extends JFrame {
 		mathtext.setHorizontalAlignment(SwingConstants.CENTER);
 		mathtext.setToolTipText("Enter marks out of 100");
 		mathtext.setFont(new Font("SansSerif", Font.BOLD, 18));
-		mathtext.setBounds(279, 222, 171, 42);
+		mathtext.setBounds(279, 265, 171, 42);
 		contentPane.add(mathtext);
 		mathtext.setColumns(10);
 		
@@ -169,60 +206,138 @@ public class Cutoff extends JFrame {
 		output = new JLabel("");
 		output.setHorizontalAlignment(SwingConstants.CENTER);
 		output.setFont(new Font("SansSerif", Font.BOLD, 18));
-		output.setBounds(212, 421, 451, 32);
+		output.setBounds(192, 461, 451, 32);
 		contentPane.add(output);
 		
 		output2 = new JLabel("All the best !");
 		output2.setFont(new Font("SansSerif", Font.BOLD, 18));
 		output2.setHorizontalAlignment(SwingConstants.CENTER);
-		output2.setBounds(259, 463, 343, 36);
+		output2.setBounds(257, 503, 343, 36);
 		contentPane.add(output2);
 		// History Label and JTextArea
+
+		history = new JTextArea();
+		history.setFont(new Font("SansSerif", Font.BOLD, 15));
+		history.setBounds(497, 122, 269, 248);
+		contentPane.add(history);
+		scrollPane = new JScrollPane(history);
+		scrollPane.setBounds(497, 122, 269, 248);  // Set bounds for scroll pane
+		scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);  // Always show vertical scrollbar
+		scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);  // Don't show horizontal scrollbar
+
+		contentPane.add(scrollPane);  // Add scroll pane to content pane
+		
 		historyLabel = new JLabel("History");
 		historyLabel.setHorizontalAlignment(SwingConstants.CENTER);
 		historyLabel.setForeground(new Color(139, 0, 0));
 		historyLabel.setFont(new Font("SansSerif", Font.BOLD, 22));
-		historyLabel.setBounds(565, 32, 150, 30);
+		historyLabel.setBounds(554, 82, 150, 30);
 		contentPane.add(historyLabel);
+		loadHistoryFromFile();
 		
-		
-
-		history = new JTextArea();
-		history.setFont(new Font("SansSerif", Font.BOLD, 15));
-		history.setBounds(519, 67, 269, 274);
-		contentPane.add(history);
 		
 		JButton clear2 = new JButton("clear history");
 		clear2.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				int response = JOptionPane.showConfirmDialog(null, "Are you sure you want to clear all the history", "Confirm", JOptionPane.YES_NO_OPTION);
 				if (response == JOptionPane.YES_OPTION) {
-				 history.setText(""); 
+					String inputPassword = JOptionPane.showInputDialog(null, "Enter password to clear history:", "Password Required", JOptionPane.WARNING_MESSAGE);
+					 if (inputPassword != null && inputPassword.equals(PASSWORD)) {
+						 history.setText(""); 
+					 	JOptionPane.showMessageDialog(null, "History cleared successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+					 }
+					 else if (inputPassword == null) {
+				            JOptionPane.showMessageDialog(null, "Password entry cancelled successfully!", "Cancelled", JOptionPane.INFORMATION_MESSAGE);
+				        } 
+					 else {
+				            // If the password is incorrect
+				            JOptionPane.showMessageDialog(null, "Incorrect password!", "Error", JOptionPane.ERROR_MESSAGE);
+				        }
 			}
 		}
 		});
 		clear2.setFont(new Font("SansSerif", Font.BOLD, 15));
-		clear2.setBounds(590, 348, 133, 32);
+		clear2.setBounds(574, 397, 133, 32);
 		contentPane.add(clear2);
 		
 		JLabel idlabel = new JLabel("ID");
 		idlabel.setForeground(new Color(139, 0, 0));
 		idlabel.setHorizontalAlignment(SwingConstants.CENTER);
 		idlabel.setFont(new Font("SansSerif", Font.BOLD, 22));
-		idlabel.setBounds(85, 36, 143, 32);
+		idlabel.setBounds(85, 115, 143, 32);
 		contentPane.add(idlabel);
 		
 		idtext = new JTextField();
 		idtext.setHorizontalAlignment(SwingConstants.CENTER);
 		idtext.setFont(new Font("SansSerif", Font.BOLD, 18));
 		idtext.setToolTipText("enter roll your roll number");
-		idtext.setBounds(279, 32, 171, 37);
+		idtext.setBounds(279, 114, 171, 37);
 		contentPane.add(idtext);
 		idtext.setColumns(10);
+		
+		JLabel lblNewLabel = new JLabel("An Engineering Cutoff Calculator");
+		lblNewLabel.setFont(new Font("SansSerif", Font.BOLD, 18));
+		lblNewLabel.setHorizontalAlignment(SwingConstants.CENTER);
+		lblNewLabel.setBounds(156, 27, 466, 30);
+		contentPane.add(lblNewLabel);
 
 		// Append results to the history
 		
 		
 
 	}
+	private void loadHistoryFromFile() {
+	    try {
+	        File file = new File("cutoff_history.txt");
+	        if (file.exists()) {
+	            BufferedReader reader = new BufferedReader(new FileReader(file));
+	            String line;
+	            while ((line = reader.readLine()) != null) {
+	                history.append(line + "\n");
+	            }
+	            reader.close();
+	        }
+	    } catch (IOException e) {
+	        e.printStackTrace();
+	    }
+	}
+
+	private void saveHistoryToFile() {
+	    try {
+	        FileWriter writer = new FileWriter("cutoff_history.txt", true); // 'true' appends to the file
+	        writer.write(history.getText());
+	        writer.close();
+	    } catch (IOException e) {
+	        e.printStackTrace();
+	    }
+	}
+
+	   
+	    // Method to insert cutoff data into the database
+	private void insertCutoffData(String id, float chemistry, float physics, float math, float cutoff) {
+	        String insertQuery = "INSERT INTO cutoff_history (id, chemistry, physics, mathematics, cutoff) VALUES (?, ?, ?, ?, ?)";
+	        try (Connection conn = connectToDatabase();
+	             PreparedStatement stmt = conn.prepareStatement(insertQuery)) {
+	            
+	            // Set the parameters
+	            stmt.setString(1, id);
+	            stmt.setFloat(2, chemistry);
+	            stmt.setFloat(3, physics);
+	            stmt.setFloat(4, math);
+	            stmt.setFloat(5, cutoff);
+
+	            // Execute the query
+	            stmt.executeUpdate();
+	            JOptionPane.showMessageDialog(null, "Cutoff data saved to database!", "Success", JOptionPane.INFORMATION_MESSAGE);
+
+	        } catch (SQLException e) {
+	            e.printStackTrace();
+	            JOptionPane.showMessageDialog(null, "Failed to insert data into the database", "Error", JOptionPane.ERROR_MESSAGE);
+	        }
+	    }
+
+	    // Inside the Calculate button's ActionListener, call the insert method:
+	   
+	
+
 }
